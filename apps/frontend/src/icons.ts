@@ -1,0 +1,21 @@
+// 使うアイコンだけを SVG パスで読み込む（アイコンフォントを配信しない）
+export {
+  mdiArrowLeft as iconBack,
+  mdiCheck as iconCheck,
+  mdiChevronRight as iconChevron,
+  mdiClose as iconClose,
+  mdiCloudOffOutline as iconOffline,
+  mdiDotsVertical as iconMore,
+  mdiDownload as iconDownload,
+  mdiDragVertical as iconDrag,
+  mdiFolderOutline as iconFolder,
+  mdiLogin as iconLogin,
+  mdiMagnify as iconSearch,
+  mdiPencilOutline as iconEdit,
+  mdiPlus as iconAdd,
+  mdiSync as iconSync,
+  mdiTrashCanOutline as iconDelete,
+  mdiTune as iconSettings,
+  mdiViewAgendaOutline as iconOneColumn,
+  mdiViewSplitVertical as iconTwoColumns,
+} from '@mdi/js'

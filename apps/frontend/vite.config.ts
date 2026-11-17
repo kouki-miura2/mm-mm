@@ -3,6 +3,8 @@ import { VitePWA } from 'vite-plugin-pwa'
 import vuetify from 'vite-plugin-vuetify'
 import { defineConfig } from 'vite-plus'
 
+import rootPackage from '../../package.json' with { type: 'json' }
+
 export default defineConfig({
   test: {
     // Vitest v4 compatibility: preserve mock call history.
@@ -18,15 +20,44 @@ export default defineConfig({
     // (`registerType: 'prompt'`, `usePwaUpdate`). `/api` is never cached. Off in `vp dev`.
     VitePWA({
       registerType: 'prompt',
+      includeAssets: ['favicon.png', 'apple-touch-icon.png'],
+      manifest: {
+        name: 'MmMm',
+        short_name: 'MmMm',
+        description: 'カテゴリごとにメモを登録・管理するツール',
+        lang: 'ja',
+        start_url: '/',
+        scope: '/',
+        display: 'standalone',
+        theme_color: '#FFFFFF',
+        background_color: '#F4F5F7',
+        icons: [
+          { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'maskable-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+      },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,woff2,png,svg}'],
+        // The font is split into many files by character range: cache the ones used, not all.
+        globPatterns: ['**/*.{js,css,html,png,svg}'],
         // The SPA fallback must not answer the API.
         navigateFallbackDenylist: [/^\/api\//],
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.endsWith('.woff2'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'fonts',
+              expiration: { maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 365 },
+            },
+          },
+        ],
       },
-      // PWA (home screen install) not needed: no manifest. Set one here to make it installable.
-      manifest: false,
     }),
   ],
+  define: {
+    __APP_VERSION__: JSON.stringify(rootPackage.version),
+  },
   // Dev only. Vuetify's auto-imported components are added at transform time, so Vite's dependency
   // scan can't see them; pre-bundling them lazily would re-optimize and reload the page on the
   // first visit to a lazy route that uses a new component (the navigation seems to do nothing).

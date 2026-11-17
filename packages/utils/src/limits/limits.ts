@@ -15,11 +15,21 @@
  *   the spec marks it 暫定値.
  */
 export const LIMITS = {
-  // Examples — replace with the app's own entries:
-  // /** Max length (characters) of a display name. Checked in both the UI and the API. */
-  // nameMaxLength: 20,
-  // /** Storage quota per user, in bytes (300 MB). Checked in the API on upload. */
-  // userStorageBytes: 300 * 1024 * 1024,
-  // /** Number of items loaded per page in lists (newest first). Provisional. */
-  // listPageSize: 50,
+  /** Max number of categories per user. Checked in both the UI and the API on create. */
+  categoriesPerUser: 20,
+  /** Max number of memos per category. Checked in both the UI and the API on create. */
+  memosPerCategory: 300,
+  /**
+   * Characters of the memo body shown in place of an omitted keyword (counted with `charLength`).
+   * Cut out in the UI. Provisional.
+   */
+  keywordFallbackMaxLength: 20,
+  /** Min width (px) of each side of the two-column memo list. Checked in the UI. Provisional. */
+  memoColumnMinWidthPx: 140,
+  /** Interval (hours) between checks for a new app version while the app is open. UI only. */
+  updateCheckIntervalHours: 1,
+  /** Session lifetime (hours). Checked in the API on each request. */
+  sessionTtlHours: 1,
+  /** Months from soft delete to hard delete of categories and memos. Applied in the API. */
+  deletedRetentionMonths: 1,
 } as const

@@ -3,26 +3,28 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 
 import { routes } from './routes.ts'
 
-test('resolves the home route', () => {
-  const router = createRouter({ history: createMemoryHistory(), routes })
+const resolve = (path: string) =>
+  createRouter({ history: createMemoryHistory(), routes }).resolve(path)
 
-  const resolved = router.resolve('/')
-
-  expect(resolved.name).toBe('home')
+test.each([
+  ['/', 'home'],
+  ['/login', 'login'],
+  ['/agree', 'agree'],
+  ['/settings', 'settings'],
+  ['/terms', 'terms'],
+  ['/privacy', 'privacy'],
+])('resolves %s to the %s route', (path, name) => {
+  expect(resolve(path).name).toBe(name)
 })
 
-test('resolves the sample route', () => {
-  const router = createRouter({ history: createMemoryHistory(), routes })
+test('passes the category id from the path', () => {
+  const resolved = resolve('/c/abc')
 
-  const resolved = router.resolve('/sample')
-
-  expect(resolved.name).toBe('sample')
+  expect(resolved.name).toBe('category')
+  expect(resolved.params.categoryId).toBe('abc')
 })
 
-test('has no match for an unknown path', () => {
-  const router = createRouter({ history: createMemoryHistory(), routes })
-
-  const resolved = router.resolve('/does-not-exist')
-
-  expect(resolved.matched).toHaveLength(0)
+test('redirects an unknown path to home', () => {
+  // `resolve()` doesn't follow redirects: check the catch-all route that matched.
+  expect(resolve('/does-not-exist').matched[0]?.redirect).toBe('/')
 })

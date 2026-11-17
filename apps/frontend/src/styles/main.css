@@ -1,0 +1,94 @@
+/* フォントは Noto Sans JP で統一する */
+:root {
+  --mm-font: 'Noto Sans JP Variable', 'Noto Sans JP', sans-serif;
+  --v-font-body: var(--mm-font);
+  --v-font-heading: var(--mm-font);
+  --mm-line: #e2e5ea;
+  --mm-line-soft: #eef0f3;
+  --mm-sub: #5a6270;
+  --mm-accent-soft: #e8eefc;
+  --mm-mark: #ffe7a3;
+}
+
+html,
+body {
+  font-family: var(--mm-font);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Vuetify 4 で全体のリセットがなくなったため、見出しと段落の余白だけ戻す */
+@layer vuetify-core.reset {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p {
+    margin: 0;
+  }
+  ul,
+  ol {
+    padding: 0;
+    margin: 0;
+  }
+}
+
+.mm-btn {
+  letter-spacing: 0;
+  font-weight: 700;
+}
+
+.mm-sub {
+  color: var(--mm-sub);
+}
+
+.mm-card {
+  background: #fff;
+  border: 1px solid var(--mm-line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.mm-card .mm-row-line + .mm-row-line {
+  border-top: 1px solid var(--mm-line-soft);
+}
+
+.mm-ellipsis {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mm-prewrap {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+mark.mm-mark {
+  background: var(--mm-mark);
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 1px;
+}
+
+.mm-chip-body {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.6;
+  color: #4a515c;
+  background: var(--mm-line-soft);
+  border-radius: 4px;
+  padding: 0 6px;
+}
+
+.mm-visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
