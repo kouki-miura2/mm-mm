@@ -7,11 +7,11 @@
 - App updates: `vite-plugin-pwa` (`generateSW`, `registerType: 'prompt'`, with a manifest so the app can be installed) generates `sw.js` on build; `src/composables/usePwaUpdate.ts` registers it and `src/components/AppSnackbars.vue` shows the "新しいバージョンがあります" snackbar. Never switch to `autoUpdate` or call `skipWaiting()` unasked (a half-filled form would be lost), never cache `/api` in the service worker, and don't register a service worker anywhere else. It's off in `vp dev`; check it with a production build. Hosts must serve over HTTPS and must not long-cache `sw.js` / `index.html`.
 - TypeScript is pinned to `^6.x` here, independent of the workspace catalog's `^7.x`: `vue-tsc`/Vue Language Tools can't type-check `.vue` SFCs against TypeScript 7's native compiler yet (no public Program API). Re-sync to the catalog once vue-tsc supports it.
 
-## API (frontend only for now)
+## API
 
-There is no backend yet. `src/api/index.ts` exports `api` = `mockApi` (`src/api/mock.ts`), a mock that keeps the "server" data in `localStorage` and reproduces the spec's behavior (limits, soft delete, diff sync by `updatedAt`, session expiry, sample data on first sign-in). `src/api/types.ts` holds the API contract (the `Api` interface, with each method's endpoint, and the row types).
+`src/api/index.ts` exports `api`, built on the Hono RPC client (`hc<AppType>('/')`, a type-only import of `apps/backend`'s `AppType`; requests go to `/api` on the same origin, with the `HttpOnly` session cookie). `send()` turns an error response `{ code, message }` or a failed connection into an `ApiError`. `src/api/types.ts` derives the row types (`Category`, `Memo`, `Me`, ...) from the client with `InferResponseType`/`InferRequestType` — no hand-written DTOs. In dev, `vite.config.ts` proxies `/api` to the Worker on `localhost:8787`.
 
-When the backend is built: implement those endpoints in `apps/backend`, then replace `mockApi` with a Hono RPC client (`hc<AppType>()`, type-only import of `apps/backend`'s `AppType`, base `/`, requests under `/api`) and take the row types from it instead of `types.ts` — no hand-written DTOs. In dev, `vite.config.ts` already proxies `/api` to `localhost:8787`.
+Sign-in: `src/components/GoogleSignIn.vue` renders the official Google button (Google Identity Services) once consent is given and `VITE_GOOGLE_WEB_CLIENT_ID` is set, otherwise a disabled stand-in. Under `vp dev` the login page also shows a 開発用ログイン button (`POST /api/auth/dev`), which the Worker accepts only from its `dev` script (`wrangler dev --var DEV_LOGIN:true`).
 
 ## State
 

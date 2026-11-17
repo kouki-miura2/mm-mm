@@ -65,16 +65,25 @@ const enter = async (me: Me, waitSync = true) => {
   else void sync()
 }
 
-export const login = async (idToken: string) => {
+const signIn = async (request: (termsVersion: string | null) => Promise<Me>) => {
   if (!isOnline.value) throw new ApiError('offline')
-  const me = await api.loginWithGoogle(idToken, deviceAgreedTerms.value)
-  await enter(me)
+  await enter(await request(deviceAgreedTerms.value))
 }
+
+/** Googleでログイン（Google Identity Services の ID トークン） */
+export const login = (idToken: string) =>
+  signIn((termsVersion) => api.loginWithGoogle(idToken, termsVersion))
+
+/** 開発用ログイン。`import.meta.env.DEV` のときだけ画面に出し、API も `wrangler dev` でだけ受け付ける */
+export const loginForDevelopment = () =>
+  signIn((termsVersion) => api.loginForDevelopment('dev', termsVersion))
 
 export const agreeTerms = async () => {
   const me = await api.agreeTerms(TERMS_VERSION)
   deviceAgreedTerms.value = TERMS_VERSION
   session.me = me
+  // 同意するまで API は同期を受け付けない
+  void sync()
 }
 
 export const logout = async () => {

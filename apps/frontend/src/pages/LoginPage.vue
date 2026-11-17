@@ -5,12 +5,13 @@ import { useRouter } from 'vue-router'
 
 import { ApiError } from '../api/index.ts'
 import AppLogo from '../components/AppLogo.vue'
+import GoogleSignIn from '../components/GoogleSignIn.vue'
 import TermsConsent from '../components/TermsConsent.vue'
 import { isOnline } from '../composables/online.ts'
 import { iconLogin } from '../icons.ts'
 import { messageFor, notify } from '../stores/notify.ts'
 import { deviceAgreedTerms } from '../stores/prefs.ts'
-import { login } from '../stores/session.ts'
+import { login, loginForDevelopment } from '../stores/session.ts'
 
 const router = useRouter()
 
@@ -20,12 +21,14 @@ const consent = ref(false)
 const canLogin = computed(() => (!needConsent.value || consent.value) && isOnline.value)
 const busy = ref(false)
 
-const onCredential = async (idToken: string) => {
+const isDev = import.meta.env.DEV
+
+const signIn = async (request: () => Promise<void>) => {
   if (!canLogin.value) return
   busy.value = true
   try {
     if (needConsent.value) deviceAgreedTerms.value = TERMS_VERSION
-    await login(idToken)
+    await request()
     void router.replace('/')
   } catch (err) {
     if (err instanceof ApiError && err.code === 'terms_not_agreed') {
@@ -60,28 +63,28 @@ const onCredential = async (idToken: string) => {
     <div class="flex-grow-1" />
 
     <div class="mt-10">
-      <!-- モックAPIのログイン。バックエンドを用意するときに Googleでログインへ置き換える -->
+      <GoogleSignIn
+        :disabled="!canLogin || busy"
+        @credential="(idToken) => signIn(() => login(idToken))"
+      />
+      <!-- 開発用ログイン。開発時（vp dev）だけ表示し、API も wrangler dev でだけ受け付ける -->
       <v-btn
+        v-if="isDev"
         block
-        size="x-large"
-        rounded="lg"
-        variant="flat"
-        :color="canLogin ? 'primary' : undefined"
+        class="mt-3"
+        variant="tonal"
         :disabled="!canLogin"
         :loading="busy"
         :prepend-icon="iconLogin"
-        @click="onCredential('mock-id-token')"
+        @click="signIn(loginForDevelopment)"
       >
-        Googleでログイン
+        開発用ログイン
       </v-btn>
       <p v-if="!isOnline" class="text-body-small text-error text-center mt-3">
         オフラインのためログインできません。
       </p>
       <p class="text-body-small mm-sub text-center mt-4">
         ログイン後、メモはこの端末にも保存され、<br />オフラインでも閲覧できます。
-      </p>
-      <p class="text-body-small mm-sub text-center mt-2">
-        （モックモード：実際のGoogleアカウントは使いません）
       </p>
     </div>
   </div>

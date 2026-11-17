@@ -87,11 +87,34 @@ vp run backend-worker#dev
 vp run -t backend-worker#build
 ```
 
+`dev` applies the D1 migrations to the local database and enables the development login
+(`--var DEV_LOGIN:true`); the frontend shows its button only under `vp dev`.
+
 - Deploy (frontend + API, one Worker):
 
 ```bash
 vp run backend-worker#deploy
 ```
+
+Before the first deploy, and whenever a value changes:
+
+1. Create a web OAuth client ID in Google Cloud Console (authorized JavaScript origin: the app's
+   URL, plus `http://localhost:5173` for development), then set it in both places:
+   - `apps/frontend/.env.local`: `VITE_GOOGLE_WEB_CLIENT_ID=<client id>` (the sign-in button)
+   - Worker secret: `npx wrangler secret put GOOGLE_CLIENT_ID` in `apps/backend-worker`
+     (verifies the ID token's `aud`). For local `wrangler dev`, put it in
+     `apps/backend-worker/.dev.vars` (gitignored) instead.
+2. Deploy once: `wrangler deploy` creates the D1 database `mm-mm` and binds it (its ID is not
+   kept in the repository).
+3. Apply the migrations to it, after the first deploy and after adding a file to
+   `apps/backend-worker/migrations/`:
+
+```bash
+vp run backend-worker#db:migrate
+```
+
+A Cron Trigger (daily 03:00 JST) hard-deletes expired sessions and categories/memos soft-deleted
+longer ago than `LIMITS.deletedRetentionMonths`.
 
 - Regenerate Workers binding types:
 

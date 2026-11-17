@@ -12,6 +12,20 @@
     // Without this, the SPA fallback would answer unknown `/api/*` paths with index.html.
     "run_worker_first": ["/api/*"],
   },
+  // D1 (docs/spec.md "データ仕様"). No `database_id`: it's environment-specific, so it stays out
+  // of the repository; `wrangler deploy` creates the database on first deploy and binds it by
+  // name. Tables come from `migrations/` (`db:migrate`, see README.md).
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "mm-mm",
+      "migrations_dir": "migrations",
+    },
+  ],
+  // Daily at 03:00 JST: hard-deletes expired sessions and long soft-deleted categories and memos.
+  "triggers": {
+    "crons": ["0 18 * * *"],
+  },
   "observability": {
     "enabled": true,
   },
