@@ -37,7 +37,9 @@ export const highlightParts = (text: string, query: string): { text: string; hit
 }
 
 /** キーワードを省略したメモは、本文の先頭N文字（「リミット値」参照）をキーワード欄に表示する */
-export const displayKeyword = (memo: Memo): { text: string; fallback: boolean } => {
+export const displayKeyword = (
+  memo: Pick<Memo, 'keyword' | 'body'>,
+): { text: string; fallback: boolean } => {
   if (memo.keyword) return { text: memo.keyword, fallback: false }
   const body = memo.body.replace(/\s+/g, ' ').trim()
   const max = LIMITS.keywordFallbackMaxLength

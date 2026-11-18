@@ -11,8 +11,9 @@ import MemoList2Col from '../components/MemoList2Col.vue'
 import MemoReorderList from '../components/MemoReorderList.vue'
 import { confirm } from '../composables/confirm.ts'
 import { useLayout } from '../composables/layout.ts'
-import { iconAdd, iconBack, iconSearch } from '../icons.ts'
-import { categories, data, deleteMemo, memosOf, reorderMemos } from '../stores/data.ts'
+import { iconAdd, iconBack, iconClose, iconPaste, iconSearch } from '../icons.ts'
+import { categories, createMemo, data, deleteMemo, memosOf, reorderMemos } from '../stores/data.ts'
+import { clearCopiedMemo, copiedMemo, copyMemo } from '../stores/memo-clipboard.ts'
 import { messageFor, notify } from '../stores/notify.ts'
 import { memoColumns } from '../stores/prefs.ts'
 import { filterMemos, displayKeyword } from '../utils/search.ts'
@@ -127,6 +128,36 @@ const addMemo = () => {
   void openEditor(null)
 }
 
+const copiedLabel = computed(() => (copiedMemo.value ? displayKeyword(copiedMemo.value).text : ''))
+const pasting = ref(false)
+
+const onCopy = (memo: Memo) => {
+  copyMemo(memo)
+  detail.open = false
+  notify('メモをコピーしました。貼り付け先のカテゴリを開いてください。')
+}
+
+/** コピーしたメモを、このカテゴリに新しいメモとして追加する */
+const paste = async () => {
+  if (!copiedMemo.value) return
+  if (!canAdd.value) {
+    notify(`メモは1カテゴリにつき${LIMITS.memosPerCategory}件まで登録できます。`, true)
+    return
+  }
+  pasting.value = true
+  try {
+    await createMemo(props.categoryId, copiedMemo.value)
+    notify(`「${category.value?.name}」に貼り付けました`)
+  } catch (err) {
+    notify(
+      messageFor(err, `メモは1カテゴリにつき${LIMITS.memosPerCategory}件まで登録できます。`),
+      true,
+    )
+  } finally {
+    pasting.value = false
+  }
+}
+
 const countText = computed(() =>
   query.value.trim()
     ? `検索結果 ${results.value.length}件`
@@ -194,8 +225,9 @@ const countText = computed(() =>
 
       <!-- 検索と表示形式 -->
       <div v-if="!editing" :class="isWide ? 'mb-4' : 'mm-cat__tools'">
+        <!-- クリアボタンは値を null にするため、空文字に戻す -->
         <v-text-field
-          v-model="query"
+          :model-value="query"
           :prepend-inner-icon="iconSearch"
           label="キーワード・メモを検索"
           variant="solo-filled"
@@ -206,6 +238,7 @@ const countText = computed(() =>
           density="comfortable"
           rounded="lg"
           type="search"
+          @update:model-value="(v: string | null) => (query = v ?? '')"
         />
         <div v-if="!isWide" class="d-flex align-center justify-space-between mt-3">
           <span class="text-body-medium mm-sub">{{ countText }}</span>
@@ -224,6 +257,24 @@ const countText = computed(() =>
             <v-btn :value="2" :rounded="false" size="small">2カラム</v-btn>
           </v-btn-toggle>
         </div>
+      </div>
+
+      <!-- コピーしたメモの貼り付け -->
+      <div v-if="copiedMemo && !editing" class="mm-paste" :class="{ 'mx-4 mt-3 mb-0': !isWide }">
+        <v-icon :icon="iconPaste" color="primary" />
+        <span class="flex-grow-1 mm-ellipsis text-body-medium">
+          コピー中：<span class="font-weight-medium">{{ copiedLabel }}</span>
+        </span>
+        <v-btn variant="flat" color="primary" size="small" :loading="pasting" @click="paste">
+          ここに貼り付け
+        </v-btn>
+        <v-btn
+          :icon="iconClose"
+          variant="text"
+          size="small"
+          aria-label="コピーを取り消す"
+          @click="clearCopiedMemo"
+        />
       </div>
 
       <!-- 一覧 -->
@@ -290,6 +341,7 @@ const countText = computed(() =>
       :query="query"
       @edit="openEditor"
       @remove="removeMemo"
+      @copy="onCopy"
     />
 
     <!-- スマホ・タブレット: 編集はダイアログ（スマホは全画面） -->
@@ -317,6 +369,16 @@ const countText = computed(() =>
 </template>
 
 <style scoped>
+.mm-paste {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 6px 6px 6px 14px;
+  border: 1px solid rgb(var(--v-theme-primary));
+  border-radius: 10px;
+  background: rgba(var(--v-theme-primary), 0.06);
+}
 .mm-cat {
   min-height: 100%;
 }

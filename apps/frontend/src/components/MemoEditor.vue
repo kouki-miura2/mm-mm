@@ -4,8 +4,9 @@ import { computed, ref, watch } from 'vue'
 
 import type { Memo } from '../api/types.ts'
 import { confirm } from '../composables/confirm.ts'
-import { iconClose, iconDelete } from '../icons.ts'
+import { iconClose, iconCopy, iconDelete } from '../icons.ts'
 import { createMemo, deleteMemo, updateMemo } from '../stores/data.ts'
+import { copyMemo } from '../stores/memo-clipboard.ts'
 import { messageFor, notify } from '../stores/notify.ts'
 import { formatDateTime } from '../utils/datetime.ts'
 import { displayKeyword } from '../utils/search.ts'
@@ -103,6 +104,13 @@ const remove = async () => {
   }
 }
 
+/** 保存済みの内容をコピーする（編集中の変更は含めない） */
+const copy = () => {
+  if (!props.memo) return
+  copyMemo(props.memo)
+  notify('メモをコピーしました。貼り付け先のカテゴリを開いてください。')
+}
+
 defineExpose({ confirmDiscard })
 </script>
 
@@ -155,22 +163,33 @@ defineExpose({ confirmDiscard })
         <span>作成 {{ formatDateTime(memo.createdAt) }}</span>
         <span>更新 {{ formatDateTime(memo.updatedAt) }}</span>
       </div>
-      <v-btn
-        v-if="memo && variant !== 'panel'"
-        variant="text"
-        color="error"
-        :prepend-icon="iconDelete"
-        class="align-self-start mt-2"
-        @click="remove"
-      >
-        このメモを削除
-      </v-btn>
+      <div v-if="memo && variant !== 'panel'" class="d-flex flex-wrap ga-2 mt-2">
+        <v-btn variant="text" :prepend-icon="iconCopy" @click="copy">他のカテゴリにコピー</v-btn>
+        <v-btn variant="text" color="error" :prepend-icon="iconDelete" @click="remove">
+          このメモを削除
+        </v-btn>
+      </div>
     </v-form>
 
     <footer v-if="variant === 'panel'" class="mm-editor__foot">
-      <v-btn v-if="memo" variant="text" color="error" :prepend-icon="iconDelete" @click="remove"
-        >削除</v-btn
-      >
+      <!-- パネルは幅が狭いため、削除・コピーはアイコンだけにする -->
+      <template v-if="memo">
+        <v-btn
+          title="削除"
+          :icon="iconDelete"
+          variant="text"
+          color="error"
+          aria-label="削除"
+          @click="remove"
+        />
+        <v-btn
+          title="他のカテゴリにコピー"
+          :icon="iconCopy"
+          variant="text"
+          aria-label="他のカテゴリにコピー"
+          @click="copy"
+        />
+      </template>
       <v-spacer />
       <v-btn variant="outlined" @click="close">キャンセル</v-btn>
       <v-btn variant="flat" color="primary" :loading="saving" @click="save">保存</v-btn>

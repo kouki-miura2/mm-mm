@@ -5,6 +5,8 @@ export {
   mdiCheck as iconCheck,
   mdiChevronRight as iconChevron,
   mdiClose as iconClose,
+  mdiContentCopy as iconCopy,
+  mdiContentPaste as iconPaste,
   mdiCloudOffOutline as iconOffline,
   mdiDotsVertical as iconMore,
   mdiDownload as iconDownload,

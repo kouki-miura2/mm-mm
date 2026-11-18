@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Memo } from '../api/types.ts'
-import { iconClose, iconDelete, iconEdit } from '../icons.ts'
+import { iconClose, iconCopy, iconDelete, iconEdit } from '../icons.ts'
 import { formatDateTime } from '../utils/datetime.ts'
 import HighlightText from './HighlightText.vue'
 import MemoKeyword from './MemoKeyword.vue'
@@ -8,7 +8,7 @@ import MemoKeyword from './MemoKeyword.vue'
 /** キーワードとメモの詳細。閉じると検索結果に戻り、別の結果を確認できる */
 const open = defineModel<boolean>({ required: true })
 defineProps<{ memo: Memo | null; query: string }>()
-const emit = defineEmits<{ edit: [memo: Memo]; remove: [memo: Memo] }>()
+const emit = defineEmits<{ edit: [memo: Memo]; remove: [memo: Memo]; copy: [memo: Memo] }>()
 </script>
 
 <template>
@@ -34,6 +34,13 @@ const emit = defineEmits<{ edit: [memo: Memo]; remove: [memo: Memo] }>()
           color="error"
           aria-label="削除"
           @click="emit('remove', memo)"
+        />
+        <v-btn
+          :icon="iconCopy"
+          variant="text"
+          aria-label="他のカテゴリにコピー"
+          title="他のカテゴリにコピー"
+          @click="emit('copy', memo)"
         />
         <v-spacer />
         <v-btn variant="outlined" :prepend-icon="iconEdit" @click="emit('edit', memo)">編集</v-btn>
