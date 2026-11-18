@@ -104,6 +104,9 @@ Before the first deploy, and whenever a value changes:
    - Worker secret: `npx wrangler secret put GOOGLE_CLIENT_ID` in `apps/backend-worker`
      (verifies the ID token's `aud`). For local `wrangler dev`, put it in
      `apps/backend-worker/.dev.vars` (gitignored) instead.
+   - `apps/frontend/.env.local`: `VITE_OPERATOR_NAME=<operator name>` and
+     `VITE_CONTACT_EMAIL=<contact email>`, shown in the terms of service and privacy policy
+     (placeholders when unset)
 2. Deploy once: `wrangler deploy` creates the D1 database `mm-mm` and binds it (its ID is not
    kept in the repository).
 3. Apply the migrations to it, after the first deploy and after adding a file to
