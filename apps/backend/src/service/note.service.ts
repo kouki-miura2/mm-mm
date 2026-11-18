@@ -1,4 +1,4 @@
-import { addMonths, LIMITS } from 'utils'
+import { addMonths, charLength, LIMITS } from 'utils'
 
 import type { Category, Memo, NoteRepository } from '../repository/note.repository.ts'
 import { AppError } from './app-error.ts'
@@ -69,12 +69,27 @@ const reorder = <T extends { id: string; sortOrder: number; updatedAt: number }>
 const requireName = (name: string) => {
   const value = name.trim()
   if (!value) throw new AppError('validation', 'カテゴリ名を入力してください')
+  if (charLength(value) > LIMITS.categoryNameMaxLength) {
+    throw new AppError(
+      'validation',
+      `カテゴリ名は${LIMITS.categoryNameMaxLength}文字以内で入力してください`,
+    )
+  }
   return value
 }
 
 const normalizeMemo = (input: MemoInput) => {
   if (!input.body.trim()) throw new AppError('validation', 'メモを入力してください')
+  if (charLength(input.body) > LIMITS.memoBodyMaxLength) {
+    throw new AppError('validation', `メモは${LIMITS.memoBodyMaxLength}文字以内で入力してください`)
+  }
   const keyword = input.keyword?.trim() || null
+  if (keyword && charLength(keyword) > LIMITS.keywordMaxLength) {
+    throw new AppError(
+      'validation',
+      `キーワードは${LIMITS.keywordMaxLength}文字以内で入力してください`,
+    )
+  }
   return { keyword, body: input.body }
 }
 

@@ -141,9 +141,11 @@ export const createD1Daos = (db: D1Database) => {
         userId,
         categoryId,
       ),
+    // Through the user's live categories (a category belongs to one user), so only live memos of
+    // live categories are read, without a categories lookup per memo.
     listLiveInLiveCategories: (userId) =>
       all<MemoRecord>(
-        'SELECT m.* FROM memos m JOIN categories c ON c.id = m.category_id WHERE m.user_id = ? AND m.deleted_at IS NULL AND c.deleted_at IS NULL',
+        'SELECT * FROM memos WHERE category_id IN (SELECT id FROM categories WHERE user_id = ? AND deleted_at IS NULL) AND deleted_at IS NULL',
         userId,
       ),
     listChangedSince: (userId, since) =>

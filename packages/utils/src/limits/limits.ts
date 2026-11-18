@@ -19,6 +19,12 @@ export const LIMITS = {
   categoriesPerUser: 20,
   /** Max number of memos per category. Checked in both the UI and the API on create. */
   memosPerCategory: 300,
+  /** Max characters of a category name, after trimming. Checked in both the UI and the API. */
+  categoryNameMaxLength: 50,
+  /** Max characters of a memo keyword, after trimming. Checked in both the UI and the API. */
+  keywordMaxLength: 50,
+  /** Max characters of a memo body. Checked in both the UI and the API. */
+  memoBodyMaxLength: 9999,
   /**
    * Characters of the memo body shown in place of an omitted keyword (counted with `charLength`).
    * Cut out in the UI. Provisional.

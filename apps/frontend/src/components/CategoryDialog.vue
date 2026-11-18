@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LIMITS } from 'utils'
+import { charLength, LIMITS } from 'utils'
 import { ref, watch } from 'vue'
 
 import type { Category } from '../api/types.ts'
@@ -23,6 +23,10 @@ watch(open, (v) => {
 const save = async () => {
   if (!name.value.trim()) {
     error.value = 'カテゴリ名を入力してください'
+    return
+  }
+  if (charLength(name.value.trim()) > LIMITS.categoryNameMaxLength) {
+    error.value = `カテゴリ名は${LIMITS.categoryNameMaxLength}文字以内で入力してください`
     return
   }
   saving.value = true
@@ -54,6 +58,8 @@ const save = async () => {
             v-model="name"
             label="カテゴリ名"
             autofocus
+            :counter="LIMITS.categoryNameMaxLength"
+            :counter-value="charLength"
             :error-messages="error"
             @update:model-value="error = ''"
           />

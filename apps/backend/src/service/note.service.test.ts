@@ -95,6 +95,39 @@ test('normalizes memo input and requires a body', async () => {
   expect(updated.memos[0]).toMatchObject({ keyword: 'k', body: 'new' })
 })
 
+// Lengths count what a person sees (`charLength`): '👨‍👩‍👧' is one character, not 8 code units.
+test('limits the length of category names, keywords and memo bodies', async () => {
+  const service = setup()
+  const max = (n: number) => '👨‍👩‍👧'.repeat(n)
+
+  const { categories } = await service.createCategory(
+    'u1',
+    ` ${max(LIMITS.categoryNameMaxLength)} `,
+  )
+  const id = categories[0]!.id
+  await expect(
+    service.createCategory('u1', max(LIMITS.categoryNameMaxLength + 1)),
+  ).rejects.toMatchObject({ code: 'validation' })
+  await expect(
+    service.renameCategory('u1', id, max(LIMITS.categoryNameMaxLength + 1)),
+  ).rejects.toMatchObject({ code: 'validation' })
+
+  const { memos } = await service.createMemo('u1', id, {
+    keyword: ` ${max(LIMITS.keywordMaxLength)} `,
+    body: max(LIMITS.memoBodyMaxLength),
+  })
+  expect(memos).toHaveLength(1)
+  await expect(
+    service.createMemo('u1', id, { keyword: max(LIMITS.keywordMaxLength + 1), body: 'b' }),
+  ).rejects.toMatchObject({ code: 'validation' })
+  await expect(
+    service.updateMemo('u1', memos[0]!.id, {
+      keyword: null,
+      body: max(LIMITS.memoBodyMaxLength + 1),
+    }),
+  ).rejects.toMatchObject({ code: 'validation' })
+})
+
 test('reorder writes and returns only the rows whose order changed', async () => {
   const service = setup()
   const ids: string[] = []

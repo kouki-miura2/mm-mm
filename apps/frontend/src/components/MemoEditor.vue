@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LIMITS } from 'utils'
+import { charLength, LIMITS } from 'utils'
 import { computed, ref, watch } from 'vue'
 
 import type { Memo } from '../api/types.ts'
@@ -23,12 +23,14 @@ const emit = defineEmits<{ close: []; saved: [id: string]; deleted: [] }>()
 
 const keyword = ref('')
 const body = ref('')
+const keywordError = ref('')
 const bodyError = ref('')
 const saving = ref(false)
 
 const reset = () => {
   keyword.value = props.memo?.keyword ?? ''
   body.value = props.memo?.body ?? ''
+  keywordError.value = ''
   bodyError.value = ''
 }
 watch(() => props.memo?.id, reset, { immediate: true })
@@ -54,10 +56,16 @@ const close = async () => {
 }
 
 const save = async () => {
-  if (!body.value.trim()) {
-    bodyError.value = 'メモを入力してください'
-    return
-  }
+  keywordError.value =
+    charLength(keyword.value.trim()) > LIMITS.keywordMaxLength
+      ? `キーワードは${LIMITS.keywordMaxLength}文字以内で入力してください`
+      : ''
+  bodyError.value = !body.value.trim()
+    ? 'メモを入力してください'
+    : charLength(body.value) > LIMITS.memoBodyMaxLength
+      ? `メモは${LIMITS.memoBodyMaxLength}文字以内で入力してください`
+      : ''
+  if (keywordError.value || bodyError.value) return
   saving.value = true
   try {
     const input = { keyword: keyword.value.trim() || null, body: body.value }
@@ -127,6 +135,10 @@ defineExpose({ confirmDiscard })
         hint="省略すると、メモ本文の先頭が一覧に表示されます。"
         persistent-hint
         :autofocus="isNew"
+        :counter="LIMITS.keywordMaxLength"
+        :counter-value="charLength"
+        :error-messages="keywordError"
+        @update:model-value="keywordError = ''"
       />
       <v-textarea
         v-model="body"
@@ -134,6 +146,8 @@ defineExpose({ confirmDiscard })
         :rows="variant === 'panel' ? 12 : 9"
         :auto-grow="variant !== 'panel'"
         :class="{ 'mm-fill': variant === 'panel' }"
+        :counter="LIMITS.memoBodyMaxLength"
+        :counter-value="charLength"
         :error-messages="bodyError"
         @update:model-value="bodyError = ''"
       />
