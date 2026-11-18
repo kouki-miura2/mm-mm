@@ -11,7 +11,7 @@ import MemoList2Col from '../components/MemoList2Col.vue'
 import MemoReorderList from '../components/MemoReorderList.vue'
 import { confirm } from '../composables/confirm.ts'
 import { useLayout } from '../composables/layout.ts'
-import { iconAdd, iconBack, iconOneColumn, iconSearch, iconTwoColumns } from '../icons.ts'
+import { iconAdd, iconBack, iconSearch } from '../icons.ts'
 import { categories, data, deleteMemo, memosOf, reorderMemos } from '../stores/data.ts'
 import { messageFor, notify } from '../stores/notify.ts'
 import { memoColumns } from '../stores/prefs.ts'
@@ -165,13 +165,15 @@ const countText = computed(() =>
             v-model="columns"
             mandatory
             density="comfortable"
-            variant="outlined"
+            color="primary"
+            variant="flat"
+            border
             divided
             rounded="lg"
             aria-label="表示形式"
           >
-            <v-btn :value="1" :prepend-icon="isDesktop ? undefined : iconOneColumn">1カラム</v-btn>
-            <v-btn :value="2" :prepend-icon="isDesktop ? undefined : iconTwoColumns">2カラム</v-btn>
+            <v-btn :value="1" :rounded="false">1カラム</v-btn>
+            <v-btn :value="2" :rounded="false">2カラム</v-btn>
           </v-btn-toggle>
           <v-btn variant="outlined" :disabled="!all.length" @click="editing = true">並び替え</v-btn>
           <v-btn
@@ -211,12 +213,15 @@ const countText = computed(() =>
             v-model="columns"
             mandatory
             density="compact"
-            variant="tonal"
+            color="primary"
+            variant="flat"
+            border
+            divided
             rounded="lg"
             aria-label="表示形式"
           >
-            <v-btn :value="1" size="small">1カラム</v-btn>
-            <v-btn :value="2" size="small">2カラム</v-btn>
+            <v-btn :value="1" :rounded="false" size="small">1カラム</v-btn>
+            <v-btn :value="2" :rounded="false" size="small">2カラム</v-btn>
           </v-btn-toggle>
         </div>
       </div>

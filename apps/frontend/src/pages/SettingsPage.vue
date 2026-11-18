@@ -4,10 +4,12 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import CsvExport from '../components/CsvExport.vue'
+import InstallGuideDialog from '../components/InstallGuideDialog.vue'
 import { confirm } from '../composables/confirm.ts'
+import { canPromptInstall, isInstalled, promptInstall } from '../composables/install.ts'
 import { useLayout } from '../composables/layout.ts'
 import { isOnline } from '../composables/online.ts'
-import { iconBack, iconChevron, iconDownload } from '../icons.ts'
+import { iconBack, iconChevron, iconDownload, iconInstall } from '../icons.ts'
 import { categories, memosOf } from '../stores/data.ts'
 import { messageFor, notify } from '../stores/notify.ts'
 import { logout, withdraw } from '../stores/session.ts'
@@ -15,9 +17,19 @@ import { logout, withdraw } from '../stores/session.ts'
 const router = useRouter()
 const { isWide } = useLayout()
 const csvOpen = ref(false)
+const installGuideOpen = ref(false)
 const version = __APP_VERSION__
 
 const barWidth = (n: number) => `${Math.max(2, (n / LIMITS.memosPerCategory) * 100)}%`
+
+/** ブラウザがインストール画面を出せればそれを使い、出せなければ手順を表示する */
+const onInstall = async () => {
+  if (!canPromptInstall.value) {
+    installGuideOpen.value = true
+    return
+  }
+  if ((await promptInstall()) === 'accepted') notify('アプリをインストールしました')
+}
 
 const onLogout = async () => {
   try {
@@ -114,6 +126,19 @@ const onWithdraw = async () => {
       <section class="mm-section">
         <h2 class="mm-section__title">このアプリについて</h2>
         <div class="mm-card">
+          <button
+            v-if="!isInstalled"
+            type="button"
+            class="mm-link-row mm-row-line"
+            @click="onInstall"
+          >
+            <v-icon :icon="iconInstall" color="primary" />
+            <span class="flex-grow-1 d-flex flex-column">
+              <span class="font-weight-medium">アプリをインストール</span>
+              <span class="text-body-small mm-sub">ホーム画面から全画面で開けます</span>
+            </span>
+            <v-icon :icon="iconChevron" color="#8A919C" />
+          </button>
           <router-link to="/terms" class="mm-link-row mm-row-line">
             <span class="flex-grow-1">利用規約</span><v-icon :icon="iconChevron" color="#8A919C" />
           </router-link>
@@ -145,6 +170,8 @@ const onWithdraw = async () => {
       </section>
     </div>
   </div>
+
+  <InstallGuideDialog v-model="installGuideOpen" />
 
   <v-dialog v-model="csvOpen" :fullscreen="!isWide" max-width="480" scrollable>
     <v-card :rounded="0">
